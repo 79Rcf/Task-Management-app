@@ -1,6 +1,6 @@
 import express from "express";
-import pool from "../db.js";
-import { verifyToken } from "../authMiddleware.js"; // to know who is commenting
+import  { pool } from "../config/db.js";
+import { verifyToken } from "../middleware/authMiddleware.js"; 
 
 const router = express.Router();
 
