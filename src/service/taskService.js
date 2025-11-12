@@ -39,46 +39,40 @@ export const getTasks = async () => {
     } finally {
         if (client) {
             client.release();
-            console.log('🔗 Database client released');
+            console.log(' Database client released');
         }
     }
 };
 
-export const createTask = async (taskData) => {
-    const { title, description, due_date, assigned_to, created_by } = taskData;
-    
+export const createTask = async ({ title, description, due_date, assigned_to, created_by }) => {
+    let client;
     try {
-
-        if (!title || !created_by) {
-            throw new Error('Title and created_by are required');
-        }
-
-        const result = await pool.query(
-            `INSERT INTO tasks (title, description, due_date, assigned_to, created_by, status) 
-             VALUES ($1, $2, $3, $4, $5, 'pending') 
-             RETURNING *`,
-            [title, description, due_date, assigned_to, created_by]
-        );
-
-        return {
-            success: true,
-            message: 'Task created successfully',
-            data: result.rows[0]
-        };
+      client = await pool.connect();
+  
+      const result = await client.query(
+        `INSERT INTO tasks (title, description, due_date, assigned_to, created_by, status)
+         VALUES ($1, $2, $3, $4, $5, 'pending')
+         RETURNING *`,
+        [title, description, due_date, assigned_to, created_by]
+      );
+  
+      return {
+        success: true,
+        message: 'Task created successfully',
+        data: result.rows[0]
+      };
     } catch (error) {
-        console.error('Error in createTask service:', error);
-        
-       
-        if (error.code === '23503') { 
-            throw new Error('Invalid user ID provided for assigned_to or created_by');
-        }
-        if (error.code === '23505') { 
-            throw new Error('Task with this title already exists');
-        }
-        
-        throw new Error('Failed to create task in database');
+      console.error('Database error creating task:', {
+        message: error.message,
+        code: error.code,
+        detail: error.detail
+      });
+  
+      throw new Error(`Database error: ${error.message}`);
+    } finally {
+      if (client) client.release();
     }
-};
+  };
 
 export const updateTaskStatus = async (taskId, status) => {
     try {
@@ -179,3 +173,29 @@ export const getUserTasks = async (userId) => {
         throw new Error('Failed to fetch user tasks');
     }
 };
+
+export const completeTask = async (taskId) => {
+    try {
+        const result = await pool.query(
+            `UPDATE tasks 
+             SET status = 'completed', updated_at = CURRENT_TIMESTAMP, completed_at = CURRENT_TIMESTAMP
+             WHERE id = $1
+             RETURNING *`,
+            [taskId]
+        );
+ 
+        if (result.rows.length === 0) {
+            throw new Error('Task not found');
+        }
+ 
+        return {
+            success: true,
+            message: 'Task marked as completed',
+            data: result.rows[0]
+        };
+    } catch (error) {
+        console.error('Error in completeTask service:', error);
+        throw error;
+    }
+ };
+ 
