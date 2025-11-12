@@ -1,19 +1,19 @@
-import jwt from "jsonwebtoken";
+import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = "supersecretkey";
+export const protect = (req, res, next) => {
+  let token = req.headers.authorization;
 
-export const verifyToken = (req, res, next) => {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(" ")[1];
+  if (!token || !token.startsWith('Bearer')) {
+    return res.status(401).json({ message: 'Unauthorized, missing token' });
+  }
 
-    if (!token) return res.status(401).json({ message: "Access denied. No token provided." });
+  token = token.split(' ')[1];
 
-    try{
-        
-        const decoded = jwt.verify(token, JWT_SECRET);
-        req.user = decoded;
-        next();
-    } catch (err) {
-        return res.status(403).json({ message: "Invalid token" })
-    }
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    return next();
+  } catch (error) {
+    return res.status(401).json({ message: 'Unauthorized, invalid token' });
+  }
 };

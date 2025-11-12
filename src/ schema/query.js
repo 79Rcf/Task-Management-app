@@ -1,4 +1,4 @@
-import pool from '../config/db.js';
+import { pool } from '../config/db.js';
 
 const createTables = async () => {
     try {
@@ -13,22 +13,48 @@ const createTables = async () => {
         `);
 
         await pool.query(`
-        CREATE TABLE IF NOT EXISTS tasks (
-            id SERIAL PRIMARY KEY,
-            title VARCHAR(255) NOT NULL,
-            description TEXT,
-            due_date TIMESTAMP,
-            status VARCHAR(50) DEFAULT 'todo' CHECK (status IN ('todo','in-progress','done')),
-            assigned_to INTEGER REFERENCES users(id),
-            created_by INTEGER REFERENCES users(id),
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-          );
+            CREATE TABLE IF NOT EXISTS tasks (
+                id SERIAL PRIMARY KEY,
+                title VARCHAR(255) NOT NULL,
+                description TEXT,
+                due_date TIMESTAMP,
+                status VARCHAR(50) DEFAULT 'pending' CHECK (status IN ('pending', 'in_progress', 'completed', 'cancelled')),
+                assigned_to INTEGER REFERENCES users(id),
+                created_by INTEGER REFERENCES users(id),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
         `);
+        
         console.log('Tables created successfully');
+        
+
+        await addTestData();
+        
     } catch (error) {
-        console.log('Error creating tables:', error);
+        console.error(' Error creating tables:', error);
     } finally {
         await pool.end();
+    }
+};
+
+const addTestData = async () => {
+    try {
+        await pool.query(`
+            INSERT INTO users (username, email, password) 
+            VALUES ('testuser', 'test@example.com', 'password123')
+            ON CONFLICT (username) DO NOTHING
+        `);
+  
+        await pool.query(`
+            INSERT INTO tasks (title, description, created_by) 
+            SELECT 'Test Task', 'This is a test task', id 
+            FROM users WHERE username = 'testuser'
+            ON CONFLICT DO NOTHING
+        `);
+        
+        console.log(' Test data added successfully');
+    } catch (error) {
+        console.error(' Error adding test data:', error);
     }
 };
 
