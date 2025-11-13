@@ -35,7 +35,7 @@ export const getTasks = async (req, res) => {
   };
   
   export const createTask = async (req, res) => {
-    console.log('=== CREATE TASK CONTROLLER START ===');
+    console.log('creating task');
     const { title, description, due_date, assigned_to } = req.body;
     const created_by = req.user?.id;
   
@@ -43,7 +43,7 @@ export const getTasks = async (req, res) => {
       return res.status(400).json({ message: 'Title is required' });
     }
   
-    if (!created_by) {
+    if (created_by) {
       return res.status(401).json({ message: 'User authentication required' });
     }
   
@@ -69,7 +69,7 @@ export const getTasks = async (req, res) => {
         error: error.message
       });
     } finally {
-      console.log('=== CREATE TASK CONTROLLER END ===');
+      console.log('created tasks ended');
     }
   };
 

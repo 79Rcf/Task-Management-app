@@ -25,7 +25,7 @@ export const registerUser = async (req, res) => {
         const token = jwt.sign(
             { userId: newUser.rows[0].id },
             process.env.JWT_SECRET,
-            { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
+            { expiresIn: process.env.JWT_EXPIRES_IN || "24h" }
         );
         res.status(201).json({
             user: newUser.rows[0],
@@ -46,10 +46,10 @@ export const loginUser = async (req, res) => {
             return res.status(401).json({message: 'Invalid email or password'});
         }
         
-        const validPassword = await bcrypt.compare(password, user.rows[0].password); // Changed to password
+        const validPassword = await bcrypt.compare(password, user.rows[0].password);
         if(!validPassword) return res.status(401).json({message: 'Invalid email or password'});
 
-        const token = jwt.sign({id: user.rows[0].id}, process.env.JWT_SECRET, {expiresIn: '1h'});
+        const token = jwt.sign({id: user.rows[0].id}, process.env.JWT_SECRET, {expiresIn: '24h'});
 
         res.status(200).json({
             user: {

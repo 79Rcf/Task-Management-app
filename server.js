@@ -5,19 +5,24 @@ import paginate from "express-paginate";
 import { testConnection } from "./src/config/db.js";
 import userRoutes from "./src/routes/userRoutes/userRoutes.js";
 import taskRoutes from "./src/routes/taskRoutes/taskRoutes.js";
+import { generalLimiter } from "./src/middleware/rateLimit.js";
+import helmet from 'helmet';
 
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT;
 
-app.use(cors());
-app.use(express.json());
-app.use(paginate.middleware(10, 50));
+
+app.use(helmet());                   
+app.use(cors());                      
+app.use(express.json());              
+app.use(paginate.middleware(10, 50)); 
+app.use(generalLimiter);            
+
 
 app.use("/api/user", userRoutes);
 app.use("/api/tasks", taskRoutes);
-
 
 app.get("/", (req, res) => {
   res.send("Server is running live");
