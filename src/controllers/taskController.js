@@ -43,7 +43,7 @@ export const getTasks = async (req, res) => {
       return res.status(400).json({ message: 'Title is required' });
     }
   
-    if (created_by) {
+    if (!created_by) {
       return res.status(401).json({ message: 'User authentication required' });
     }
   
