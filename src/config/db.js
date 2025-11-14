@@ -4,14 +4,26 @@ import dotenv from "dotenv";
 dotenv.config();
 const { Pool } = pkg;
 
+const isProduction = process.env.NODE_ENV === "production";
 
-const pool = new Pool({
-  user: process.env.DB_USER || "postgres",       
-  host: process.env.DB_HOST || "localhost",           
-  database: process.env.DB_NAME || "content_manager",     
-  password: process.env.DB_PASSWORD || "",            
-  port: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 3100,
-});
+const productionConfig = {
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
+};
+
+// Configuration pour Développement local
+const developmentConfig = {
+  user: process.env.DB_USER || "postgres",
+  host: process.env.DB_HOST || "localhost",
+  database: process.env.DB_NAME || "content_manager",
+  password: process.env.DB_PASSWORD || "",
+  port: parseInt(process.env.DB_PORT) || 5432,
+};
+
+// Pool selon l'environnement
+const pool = new Pool(isProduction ? productionConfig : developmentConfig);
 
 async function testConnection() {
   try {
