@@ -7,8 +7,7 @@ import userRoutes from "./src/routes/userRoutes/userRoutes.js";
 import taskRoutes from "./src/routes/taskRoutes/taskRoutes.js";
 import { generalLimiter } from "./src/middleware/rateLimit.js";
 import helmet from 'helmet';
-import  { createTable, addTestData } from './src/schema/query.js'
-
+import { createTables, addTestData } from './src/schema/query.js';
 
 dotenv.config();
 
@@ -17,13 +16,11 @@ app.set("trust proxy", 1);
 
 const port = process.env.PORT;
 
-
 app.use(helmet());                   
 app.use(cors());                      
 app.use(express.json());              
 app.use(paginate.middleware(10, 50)); 
 app.use(generalLimiter);            
-
 
 app.use("/api/user", userRoutes);
 app.use("/api/tasks", taskRoutes);
@@ -35,11 +32,11 @@ app.get("/", (req, res) => {
 const startServer = async () => {
   try {
     await testConnection();
-    app.listen(port, () => {
-      console.log(` Server is running on http://localhost:${port}`);
-    });
+    await createTables();
     await addTestData();
-    await createTable();
+    app.listen(port, () => {
+      console.log(`Server is running on http://localhost:${port}`);
+    });
   } catch (error) {
     console.error("Failed to start server:", error);
     process.exit(1);
