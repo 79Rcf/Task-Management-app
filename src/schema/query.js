@@ -21,28 +21,31 @@ const createTables = async () => {
                 status VARCHAR(50) DEFAULT 'pending' CHECK (status IN ('pending', 'in_progress', 'completed', 'cancelled')),
                 assigned_to INTEGER REFERENCES users(id),
                 created_by INTEGER REFERENCES users(id),
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                completed_at TIMESTAMP
             );
         `);
         
         console.log('Tables created successfully');
         
-
         await addTestData();
         
     } catch (error) {
-        console.error(' Error creating tables:', error);
-    } finally {
-        await pool.end();
+        console.error('Error creating tables:', error);
+        throw error; 
     }
+
 };
 
 const addTestData = async () => {
     try {
-        await pool.query(`
+
+        const userResult = await pool.query(`
             INSERT INTO users (username, email, password) 
-            VALUES ('testuser', 'test@example.com', 'password123')
+            VALUES ('testuser', 'test@example.com', 'hashed_password_here')
             ON CONFLICT (username) DO NOTHING
+            RETURNING id
         `);
   
         await pool.query(`
@@ -52,10 +55,14 @@ const addTestData = async () => {
             ON CONFLICT DO NOTHING
         `);
         
-        console.log(' Test data added successfully');
+        console.log('Test data added successfully');
     } catch (error) {
         console.error(' Error adding test data:', error);
     }
 };
 
-await createTables();
+if (import.meta.url === `file://${process.argv[1]}`) {
+    await createTables();
+}
+
+export { createTables, addTestData };
