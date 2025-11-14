@@ -7,6 +7,8 @@ import userRoutes from "./src/routes/userRoutes/userRoutes.js";
 import taskRoutes from "./src/routes/taskRoutes/taskRoutes.js";
 import { generalLimiter } from "./src/middleware/rateLimit.js";
 import helmet from 'helmet';
+import  { createTable, addTestData } from './src/schema/query.js'
+
 
 dotenv.config();
 
@@ -36,6 +38,8 @@ const startServer = async () => {
     app.listen(port, () => {
       console.log(` Server is running on http://localhost:${port}`);
     });
+    await addTestData();
+    await createTable();
   } catch (error) {
     console.error("Failed to start server:", error);
     process.exit(1);

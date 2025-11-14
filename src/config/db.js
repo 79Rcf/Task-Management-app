@@ -13,7 +13,7 @@ const productionConfig = {
   }
 };
 
-// Configuration pour Développement local
+
 const developmentConfig = {
   user: process.env.DB_USER || "postgres",
   host: process.env.DB_HOST || "localhost",
@@ -22,7 +22,7 @@ const developmentConfig = {
   port: parseInt(process.env.DB_PORT) || 5432,
 };
 
-// Pool selon l'environnement
+
 const pool = new Pool(isProduction ? productionConfig : developmentConfig);
 
 async function testConnection() {
